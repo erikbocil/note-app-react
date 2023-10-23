@@ -1,59 +1,67 @@
-import { Button, Card, Empty, Flex, Input } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
+import { Col, Input, Row } from 'antd';
 import { useState } from 'react';
 import { getInitialData } from './utils';
+import { CloseOutlined } from '@ant-design/icons';
+import NoteForm from './Components/NoteForm';
+import { Content } from 'antd/es/layout/layout';
+import NoteList from './Components/NoteList';
 
 function App() {
-  const charLeft = 50;
   const [notes, setNotes] = useState(getInitialData());
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [query, setQuery] = useState('');
 
-  const formSubmit = (e) => {
-    e.preventDefault();
-    setNotes([...notes, { id: notes.length + 1, title, body }]);
-    setTitle('');
-    setBody('');
+  const handleArchive = (id) => {
+    setNotes(
+      notes.map((note) =>
+        note.id === id ? { ...note, archived: !note.archived } : note,
+      ),
+    );
+  };
+
+  const handleDelete = (id) => {
+    setNotes(notes.filter((note) => note.id !== id));
   };
 
   return (
     <>
-      <form onSubmit={formSubmit}>
-        <Flex vertical gap="middle">
-          <p>
-            karakter Tersisa:{' '}
-            <span style={{ color: charLeft - title.length <= 10 ? 'red' : '' }}>
-              {charLeft - title.length}
-            </span>
-          </p>
-          <Input
-            placeholder="Judul"
-            size="large"
-            value={title}
-            onChange={(e) => {
-              if (e.target.value.length > charLeft) return;
-              setTitle(e.target.value);
-            }}
-          />
-          <TextArea
-            rows={4}
-            onChange={(e) => setBody(e.target.value)}
-            value={body}
-          />
-          <Button type="primary" htmlType="submit">
-            Simpan
-          </Button>
-        </Flex>
-      </form>
-      {notes ? (
-        notes.map((note) => (
-          <Card key={note.id} title={note.title} bordered>
-            {note.body}
-          </Card>
-        ))
-      ) : (
-        <Empty />
-      )}
+      <Content style={{ padding: '0 1rem' }}>
+        <Row justify="center">
+          <Col xs={24} md={12}>
+            <NoteForm onSubmit={setNotes} />
+          </Col>
+        </Row>
+
+        <br />
+
+        <Row justify="end">
+          <Col>
+            <Input
+              placeholder="Cari Catatan"
+              size="large"
+              value={query}
+              name="title"
+              onChange={(e) => setQuery(e.target.value)}
+              suffix={<CloseOutlined onClick={() => setQuery('')} />}
+            />
+          </Col>
+        </Row>
+
+        <NoteList
+          notes={notes}
+          handleArchive={handleArchive}
+          handleDelete={handleDelete}
+          query={query}
+          archived={false}
+        />
+
+        <NoteList
+          notes={notes}
+          handleArchive={handleArchive}
+          handleDelete={handleDelete}
+          query={query}
+          archived={true}
+        />
+      </Content>
     </>
   );
 }
